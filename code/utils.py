@@ -1,5 +1,6 @@
 import numpy as np
-from scipy.stats import ks_2samp, kstest, norm
+import pandas as pd
+from scipy.stats import ks_2samp, kstest, norm, pearsonr, spearmanr
 
 def log_hist(data, nbins=30):
     '''
@@ -129,3 +130,15 @@ def two_tailed_pvalue(data, mu=0, sigma=1):
     pvalue = 2*norm.cdf(-np.abs(data-mu)/sigma)
     
     return pvalue
+
+def calculate_pvalues(df, method='pearson'):
+    df = df.dropna()._get_numeric_data()
+    dfcols = pd.DataFrame(columns=df.columns)
+    pvalues = dfcols.transpose().join(dfcols, how='outer')
+    for r in df.columns:
+        for c in df.columns:
+            if method=='pearson':
+                pvalues[r][c] = round(pearsonr(df[r], df[c])[1], 6)
+            elif method=='spearman':
+                pvalues[r][c] = round(spearmanr(df[r], df[c])[1], 6)
+    return pvalues
